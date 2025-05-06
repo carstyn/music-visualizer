@@ -2,3 +2,65 @@ import pygame
 import librosa
 import numpy as np
 
+# Initialize Pygame
+pygame.init()
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Interactive Music Visualizer")
+clock = pygame.time.Clock()
+
+# Load audio file
+audio_file = "example-audio.mp3"  # rename to MP3 or WAV file
+try:
+    y, sr = librosa.load(audio_file)  # Load audio waveform and sample rate
+except Exception as e:
+    print(f"Error loading audio: {e}")
+    pygame.quit()
+    exit()
+
+# Compute amplitude (RMS energy) for later use
+rms = librosa.feature.rms(y=y)[0]
+rms = rms / np.max(rms)  # Normalize for scaling visuals
+print(f"Loaded audio with {len(rms)} RMS samples")
+
+# Set up audio playback
+try:
+    pygame.mixer.music.load(audio_file)
+    pygame.mixer.music.play()
+except Exception as e:
+    print(f"Error playing audio: {e}")
+    pygame.quit()
+    exit()
+
+# Colors
+WHITE = (255, 255, 255)
+BLUE = (0, 100, 255)
+
+# Main loop
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
+
+    # Clear screen
+    screen.fill((0, 0, 0))  # Black background
+
+    # Draw static circle (placeholder visual)
+    pygame.draw.circle(screen, BLUE, (WIDTH // 2, HEIGHT // 2), 50, 2)
+
+    # Draw title
+    font = pygame.font.SysFont("arial", 24)
+    text = font.render("Music Visualizer", True, WHITE)
+    screen.blit(text, (10, 10))
+
+    # Update display
+    pygame.display.flip()
+    clock.tick(60)
+
+# Cleanup
+pygame.mixer.music.stop()
+pygame.quit()
