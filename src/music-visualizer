@@ -10,7 +10,7 @@ pygame.display.set_caption("Interactive Music Visualizer")
 clock = pygame.time.Clock()
 
 # Load audio file
-audio_file = "example-audio.mp3"  # rename to MP3 or WAV file
+audio_file = "example-audio.mp3"  # Replace with name of MP3 or WAV file in src folder
 try:
     y, sr = librosa.load(audio_file)  # Load audio waveform and sample rate
 except Exception as e:
@@ -18,10 +18,12 @@ except Exception as e:
     pygame.quit()
     exit()
 
-# Compute amplitude (RMS energy) for later use
+# Compute amplitude for visualization
 rms = librosa.feature.rms(y=y)[0]
 rms = rms / np.max(rms)  # Normalize for scaling visuals
-print(f"Loaded audio with {len(rms)} RMS samples")
+duration = librosa.get_duration(y=y, sr=sr)
+time_per_frame = duration / len(rms)  # Seconds per RMS sample
+print(f"Loaded audio with {len(rms)} RMS samples, duration {duration}s")
 
 # Set up audio playback
 try:
@@ -36,8 +38,13 @@ except Exception as e:
 WHITE = (255, 255, 255)
 BLUE = (0, 100, 255)
 
+# Font for UI
+font = pygame.font.SysFont("arial", 24)
+
 # Main loop
 running = True
+current_time = 0
+frame_index = 0
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -46,16 +53,27 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
 
+    # Update current time and frame for audio-visual sync
+    current_time += 1 / 60  # Assuming 60 FPS
+    frame_index = min(int(current_time / time_per_frame), len(rms) - 1)
+
     # Clear screen
     screen.fill((0, 0, 0))  # Black background
 
-    # Draw static circle (placeholder visual)
-    pygame.draw.circle(screen, BLUE, (WIDTH // 2, HEIGHT // 2), 50, 2)
+    # Get amplitude and scale circle radius
+    amplitude = rms[frame_index]
+    radius = 50 + amplitude * 200  # Base radius + scaled amplitude
 
-    # Draw title
-    font = pygame.font.SysFont("arial", 24)
-    text = font.render("Music Visualizer", True, WHITE)
-    screen.blit(text, (10, 10))
+    # Draw pulsing circle
+    pygame.draw.circle(screen, BLUE, (WIDTH // 2, HEIGHT // 2), int(radius), 2)
+
+    # Draw UI elements
+    # Title
+    title_text = font.render("Music Visualizer", True, WHITE)
+    screen.blit(title_text, (10, 10))
+    # Playback status
+    status_text = font.render("Playing", True, WHITE)
+    screen.blit(status_text, (10, 40))
 
     # Update display
     pygame.display.flip()
