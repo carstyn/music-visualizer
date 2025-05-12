@@ -69,11 +69,12 @@ def draw_visuals(screen, rms, frame_index, beat_times, current_time, width, heig
     else:
         pygame.draw.circle(screen, color, (width // 2, height // 2), int(radius), 2)  # Outline
 
-def draw_ui(screen, font, is_playing, color_theme_name):
+def draw_ui(screen, font, is_playing, color_theme_name, audio_file):
     """Render UI elements (title, playback status, color theme, button)."""
     title_text = font.render("Music Visualizer", True, (255, 255, 255))
     screen.blit(title_text, (10, 10))
-    status_text = font.render("Playing" if is_playing else "Paused", True, (255, 255, 255))
+    filename = os.path.basename(audio_file) if audio_file else "None"
+    status_text = font.render(f"{'Playing' if is_playing else 'Paused'}: {filename}", True, (255, 255, 255))
     screen.blit(status_text, (10, 40))
     theme_text = font.render(f"Theme: {color_theme_name}", True, (255, 255, 255))
     screen.blit(theme_text, (10, 70))
@@ -171,7 +172,7 @@ def main():
 
         # Draw visuals and UI
         draw_visuals(screen, rms, frame_index, beat_times, current_time, WIDTH, HEIGHT, color_themes[current_theme]["color"])
-        button_rect = draw_ui(screen, font, is_playing, color_themes[current_theme]["name"])
+        button_rect = draw_ui(screen, font, is_playing, color_themes[current_theme]["name"], audio_file)
 
         # Update display
         pygame.display.flip()
